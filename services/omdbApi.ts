@@ -1,50 +1,31 @@
-import axios, { AxiosResponse } from 'axios';
-import { Movie, MovieDetails, OMDbResponse } from '../types/movie';
+import axios from 'axios';
+import { Movie, MovieDetail } from '../types/movie';
 
 const API_KEY = 'b45dad4f';
 const BASE_URL = 'http://www.omdbapi.com/';
 
-class OMDbAPI {
-  async searchMovies(query: string, page: number = 1): Promise<Movie[]> {
-    try {
-      const response: AxiosResponse<OMDbResponse> = await axios.get(BASE_URL, {
-        params: {
-          apikey: API_KEY,
-          s: query,
-          page,
-          type: 'movie',
-        },
-        timeout: 10000,
-      });
-
-      if (response.data.Response === 'True') {
-        return response.data.Search || [];
-      } else {
-        return [];
-      }
-    } catch (error) {
-      console.error('Error searching movies:', error);
-      return [];
+export const searchMovies = async (query: string): Promise<Movie[]> => {
+  try {
+    const response = await axios.get(`${BASE_URL}?apikey=${API_KEY}&s=${query}`);
+    if (response.data.Response === 'True') {
+      return response.data.Search || [];
     }
+    return [];
+  } catch (error) {
+    console.error('Error searching movies:', error);
+    return [];
   }
+};
 
-  async getMovieDetails(imdbID: string): Promise<MovieDetails | null> {
-    try {
-      const response: AxiosResponse<MovieDetails> = await axios.get(BASE_URL, {
-        params: {
-          apikey: API_KEY,
-          i: imdbID,
-          plot: 'full',
-        },
-        timeout: 10000,
-      });
-
+export const getMovieDetail = async (imdbID: string): Promise<MovieDetail | null> => {
+  try {
+    const response = await axios.get(`${BASE_URL}?apikey=${API_KEY}&i=${imdbID}`);
+    if (response.data.Response === 'True') {
       return response.data;
-    } catch (error) {
-      console.error('Error fetching movie details:', error);
-      return null;
     }
+    return null;
+  } catch (error) {
+    console.error('Error fetching movie detail:', error);
+    return null;
   }
-}
-
-export default new OMDbAPI();
+};

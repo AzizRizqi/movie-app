@@ -1,160 +1,356 @@
+// app/(tabs)/movie/[id].tsx
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, Text, ImageBackground, ScrollView, StyleSheet, ActivityIndicator, Button } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import omdbApi from '../../../services/omdbApi';
-import { MovieDetails } from '../../../types/movie';
+import {
+  ScrollView,
+  View,
+  Text,
+  Image,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar
+} from 'react-native';
+import axios from 'axios';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { MovieDetail, Rating } from '../../../types/movie';
 
-const MovieDetail = () => {
+export default function MovieDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [movie, setMovie] = useState<MovieDetails | null>(null);
+  const router = useRouter();
+  const [movie, setMovie] = useState<MovieDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      loadMovieDetails(id);
-    }
-  }, [id]);
-
-  const loadMovieDetails = async (movieId: string) => {
-    setLoading(true);
-    try {
-      const data = await omdbApi.getMovieDetails(movieId);
-      setMovie(data);
-    } catch (error) {
-      console.error('Error loading movie details:', error);
-    } finally {
+    if (!id) {
       setLoading(false);
+      return;
     }
-  };
 
-  const getRatingStars = (rating: string): string => {
-    const numRating = parseFloat(rating);
-    const stars = Math.round(numRating / 2);
-    return '★'.repeat(stars) + '☆'.repeat(5 - stars);
-  };
+    const fetchDetail = async () => {
+      try {
+        const API_KEY = 'b45dad4f';
+        const res = await axios.get(`http://www.omdbapi.com/?apikey=${API_KEY}&i=${id}`);
+
+        if (res.data.Response === 'True') {
+          setMovie(res.data);
+        } else {
+          console.warn('Movie not found or API error:', res.data.Error);
+          setMovie(null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch movie details:', error);
+        setMovie(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetail();
+  }, [id]);
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#fff" />
-        <Text style={{ color: '#fff', marginTop: 10 }}>Loading movie details...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
       </View>
     );
   }
 
   if (!movie) {
     return (
-      <View style={styles.center}>
-        <Text style={{ color: '#fff', fontSize: 18 }}>Movie not found</Text>
-        <Button title="Back to Home" onPress={() => router.back()} />
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Movie Not Found or Error Fetching Data</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
       </View>
     );
   }
 
+  const otherRatings = movie.Ratings?.filter(
+    (rating: Rating) => rating.Source !== 'Internet Movie Database'
+  ) || [];
+
   return (
-    <ScrollView style={styles.container}>
-      <ImageBackground
-        source={{
-          uri: movie.Poster !== 'N/A'
-            ? movie.Poster
-            : 'https://via.placeholder.com/800x600/667eea/ffffff?text=No+Image',
-        }}
-        style={styles.hero}
-        resizeMode="cover"
-      >
-        <View style={styles.overlay}>
-          <Text style={styles.title}>{movie.Title}</Text>
-          <Text style={styles.subTitle}>
-            {movie.Runtime} • {movie.Genre}
-          </Text>
-          <Text style={styles.rating}>
-            {getRatingStars(movie.imdbRating)} ({movie.imdbRating}/10)
-          </Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <StatusBar barStyle="light-content" />
+
+      <View style={styles.imageContainer}>
+        <Image
+          source={{
+            uri: movie.Poster !== 'N/A' ? movie.Poster : 'https://via.placeholder.com/400x600'
+          }}
+          style={styles.backdrop}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']}
+          style={styles.gradient}
+        />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+
+        {/* Start: Perubahan untuk tombol Play */}
+        <LinearGradient
+          colors={['#3B82F6', '#3730A3']} // Contoh warna gradien yang serasi dengan tema
+          style={styles.playButtonGradient}
+        >
+          <TouchableOpacity style={styles.playButtonInner}>
+            <Ionicons name="play" size={24} color="white" />
+          </TouchableOpacity>
+        </LinearGradient>
+        {/* End: Perubahan untuk tombol Play */}
+
+      </View>
+
+      <View style={styles.content}>
+        <Text style={styles.title}>{movie.Title}</Text>
+
+        <View style={styles.metadata}>
+          <Text style={styles.metadataText}>{movie.Year}</Text>
+          <Text style={styles.dot}>•</Text>
+          <Text style={styles.metadataText}>{movie.Runtime}</Text>
+          <Text style={styles.dot}>•</Text>
+          <Text style={styles.metadataText}>{movie.Type === 'movie' ? 'Movie' : movie.Type}</Text>
+          <Text style={styles.dot}>•</Text>
+          <Text style={styles.metadataText}>4K</Text>
         </View>
-      </ImageBackground>
 
-      <View style={styles.detailsContainer}>
-        <Text style={styles.sectionTitle}>Information</Text>
-        <Text style={styles.text}><Text style={styles.label}>Director:</Text> {movie.Director}</Text>
-        <Text style={styles.text}><Text style={styles.label}>Writer:</Text> {movie.Writer}</Text>
-        <Text style={styles.text}><Text style={styles.label}>Actors:</Text> {movie.Actors}</Text>
-        <Text style={styles.text}><Text style={styles.label}>Language:</Text> {movie.Language}</Text>
-        <Text style={styles.text}><Text style={styles.label}>Country:</Text> {movie.Country}</Text>
-        <Text style={styles.text}><Text style={styles.label}>Rating:</Text> {movie.Rated}</Text>
-
-        {movie.Awards && movie.Awards !== 'N/A' && (
-          <>
-            <Text style={styles.sectionTitle}>Awards</Text>
-            <Text style={styles.text}>{movie.Awards}</Text>
-          </>
-        )}
-
-        {movie.Plot && (
-          <>
-            <Text style={styles.sectionTitle}>Synopsis</Text>
-            <Text style={styles.text}>{movie.Plot}</Text>
-          </>
-        )}
-
-        <View style={{ marginTop: 20 }}>
-          <Button title="← Back" onPress={() => router.back()} />
+        <View style={styles.rating}>
+          <Ionicons name="star" size={16} color="#FCD34D" />
+          <Text style={styles.ratingText}>{movie.imdbRating}</Text>
         </View>
+
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Information</Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Released:</Text>
+            <Text style={styles.infoValue}>{movie.Released}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Director:</Text>
+            <Text style={styles.infoValue}>{movie.Director}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Writer:</Text>
+            <Text style={styles.infoValue}>{movie.Writer}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Actors:</Text>
+            <Text style={styles.infoValue}>{movie.Actors}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Language:</Text>
+            <Text style={styles.infoValue}>{movie.Language}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Country:</Text>
+            <Text style={styles.infoValue}>{movie.Country}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Awards:</Text>
+            <Text style={styles.infoValue}>{movie.Awards}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Rated:</Text>
+            <Text style={styles.infoValue}>{movie.Rated}</Text>
+          </View>
+
+          {movie.BoxOffice && movie.BoxOffice !== 'N/A' && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Box Office:</Text>
+              <Text style={styles.infoValue}>{movie.BoxOffice}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.synopsisSection}>
+          <Text style={styles.sectionTitle}>Synopsis</Text>
+          <Text style={styles.synopsis}>{movie.Plot}</Text>
+        </View>
+
+        {otherRatings.length > 0 && (
+          <View style={styles.otherRatingsSection}>
+            <Text style={styles.sectionTitle}>Other Ratings</Text>
+            {otherRatings.map((rating, index) => (
+              <View key={index} style={styles.ratingItem}>
+                <Text style={styles.ratingSource}>{rating.Source}:</Text>
+                <Text style={styles.ratingValue}>{rating.Value}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#667eea',
+    flex: 1,
+    backgroundColor: '#111827',
   },
-  center: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#667eea',
-    padding: 20,
+    backgroundColor: '#111827',
   },
-  hero: {
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#111827',
+  },
+  errorText: {
+    color: 'white',
+    fontSize: 18,
+    marginBottom: 20,
+  },
+  imageContainer: {
+    position: 'relative',
     height: 400,
-    justifyContent: 'flex-end',
   },
-  overlay: {
+  backdrop: {
+    width: '100%',
+    height: '100%',
+  },
+  gradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  // Start: Perubahan style untuk tombol Play
+  playButtonGradient: {
+    position: 'absolute',
+    bottom: 120, // Tetap di atas teks
+    left: '50%', // Pindahkan ke tengah horizontal
+    transform: [{ translateX: -25 }], // Geser ke kiri setengah lebar tombol (50/2)
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  playButtonInner: {
+    // Tidak perlu style khusus, karena LinearGradient akan menentukan ukuran dan bentuknya
+    // Tombol di dalam gradien akan secara otomatis mengisi
+  },
+  // End: Perubahan style untuk tombol Play
+  content: {
+    padding: 20,
+    marginTop: -80,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
-  },
-  subTitle: {
-    fontSize: 16,
-    color: '#ddd',
-    marginTop: 4,
-  },
-  rating: {
-    fontSize: 18,
-    color: '#ffeb3b',
-    marginTop: 8,
-  },
-  detailsContainer: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 16,
+    color: 'white',
     marginBottom: 8,
   },
-  text: {
-    color: '#fff',
-    marginBottom: 6,
+  metadata: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
   },
-  label: {
-    fontWeight: 'bold',
+  metadataText: {
+    color: '#9CA3AF',
+    fontSize: 14,
+  },
+  dot: {
+    color: '#9CA3AF',
+    marginHorizontal: 8,
+  },
+  rating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  ratingText: {
+    color: '#FCD34D',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  infoSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    alignItems: 'flex-start',
+  },
+  infoLabel: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    width: 90,
+    fontWeight: '500',
+  },
+  infoValue: {
+    color: 'white',
+    fontSize: 14,
+    flex: 1,
+  },
+  synopsisSection: {
+    marginBottom: 24,
+  },
+  synopsis: {
+    color: '#E5E7EB',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  otherRatingsSection: {
+    marginBottom: 24,
+  },
+  ratingItem: {
+    flexDirection: 'row',
+    marginBottom: 6,
+    alignItems: 'center',
+  },
+  ratingSource: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    width: 120,
+    fontWeight: '500',
+  },
+  ratingValue: {
+    color: 'white',
+    fontSize: 14,
+    flex: 1,
   },
 });
-
-export default MovieDetail;

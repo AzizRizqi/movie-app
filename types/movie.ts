@@ -1,3 +1,5 @@
+// types/movie.ts
+
 export interface Movie {
   Title: string;
   Year: string;
@@ -6,9 +8,16 @@ export interface Movie {
   Poster: string;
 }
 
-export interface MovieDetails extends Movie {
+export interface Rating {
+  Source: string;
+  Value: string;
+}
+
+export interface MovieDetail {
+  Title: string;
+  Year: string;
   Rated: string;
-  Released: string;
+  Released: string;   // Tambahan baru
   Runtime: string;
   Genre: string;
   Director: string;
@@ -18,17 +27,17 @@ export interface MovieDetails extends Movie {
   Language: string;
   Country: string;
   Awards: string;
-  Ratings: {
-    Source: string;
-    Value: string;
-  }[];
-  Metascore: string;
+  Poster: string;
+  Ratings: Rating[];  // Tambahan baru (array of Rating objects)
+  Metascore: string;  // Tambahan baru
   imdbRating: string;
-  imdbVotes: string;
-  DVD: string;
-  BoxOffice: string;
-  Production: string;
-  Website: string;
+  imdbVotes: string;  // Tambahan baru
+  imdbID: string;
+  Type: string;
+  DVD: string;        // Tambahan baru
+  BoxOffice: string;  // Tambahan baru
+  Production: string; // Tambahan baru
+  Website: string;    // Tambahan baru
   Response: string;
 }
 
