@@ -1,4 +1,3 @@
-// app/(tabs)/index.tsx
 import { StyleSheet, View, Text, SafeAreaView, ScrollView, TextInput, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,6 +32,7 @@ export default function HomeScreen() {
     };
     fetchPopular();
   }, []);
+  
 
   const handleSearch = async () => {
     if (searchQuery.trim() === '') {
@@ -87,7 +87,7 @@ export default function HomeScreen() {
               onChangeText={setSearchQuery}
               onSubmitEditing={handleSearch}
             />
-            <Ionicons name="mic-outline" size={20} color="#9CA3AF" style={styles.mainMicIcon} />
+            
           </View>
 
           {/* Carousel Film Populer */}
@@ -114,10 +114,6 @@ export default function HomeScreen() {
           {searchResults.length > 0 && (
             <View style={styles.searchResultsSection}>
               <View style={styles.searchResultsHeader}>
-                <Text style={styles.searchResultsTitle}>Categories</Text>
-                <TouchableOpacity>
-                  <Text style={styles.searchResultsViewAll}>See all</Text>
-                </TouchableOpacity>
               </View>
               {searchResults.map((movie) => (
                 <TouchableOpacity
@@ -301,6 +297,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#D1D5DB', // Abu-abu terang
     marginBottom: 5,
+    marginTop:40,
   },
   searchResultTitleText: {
     fontSize: 22, // Ukuran lebih besar untuk judul

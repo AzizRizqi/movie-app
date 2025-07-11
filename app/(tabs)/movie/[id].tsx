@@ -97,14 +97,7 @@ export default function MovieDetailScreen() {
         </TouchableOpacity>
 
         {/* Start: Perubahan untuk tombol Play */}
-        <LinearGradient
-          colors={['#3B82F6', '#3730A3']} // Contoh warna gradien yang serasi dengan tema
-          style={styles.playButtonGradient}
-        >
-          <TouchableOpacity style={styles.playButtonInner}>
-            <Ionicons name="play" size={24} color="white" />
-          </TouchableOpacity>
-        </LinearGradient>
+       
         {/* End: Perubahan untuk tombol Play */}
 
       </View>
@@ -118,8 +111,6 @@ export default function MovieDetailScreen() {
           <Text style={styles.metadataText}>{movie.Runtime}</Text>
           <Text style={styles.dot}>•</Text>
           <Text style={styles.metadataText}>{movie.Type === 'movie' ? 'Movie' : movie.Type}</Text>
-          <Text style={styles.dot}>•</Text>
-          <Text style={styles.metadataText}>4K</Text>
         </View>
 
         <View style={styles.rating}>
@@ -249,18 +240,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   // Start: Perubahan style untuk tombol Play
-  playButtonGradient: {
-    position: 'absolute',
-    bottom: 120, // Tetap di atas teks
-    left: '50%', // Pindahkan ke tengah horizontal
-    transform: [{ translateX: -25 }], // Geser ke kiri setengah lebar tombol (50/2)
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
   playButtonInner: {
     // Tidak perlu style khusus, karena LinearGradient akan menentukan ukuran dan bentuknya
     // Tombol di dalam gradien akan secara otomatis mengisi

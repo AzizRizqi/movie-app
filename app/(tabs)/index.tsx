@@ -1,10 +1,48 @@
-// app/(tabs)/index.tsx
-import { Redirect } from 'expo-router';
-import React from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text } from 'react-native';
 
-export default function TabRootRedirect() {
-  // This component acts as a redirector for the base path of the (tabs) group.
-  // It will automatically navigate to the '/movie' route, which corresponds
-  // to app/(tabs)/movie/index.tsx based on your _layout.tsx setup.
-  return <Redirect href="/movie" />;
+export default function SplashScreen() {
+    const opacity = useRef(new Animated.Value(0)).current;
+    const router = useRouter();
+
+    useEffect(() => {
+        Animated.timing(opacity, {
+            toValue: 1,
+            duration: 1000,
+            delay: 300,
+            useNativeDriver: true,
+        }).start();
+
+        const timeout = setTimeout(() => {
+            router.replace('/(tabs)/movie');
+        }, 3000);
+
+        return () => clearTimeout(timeout);
+    }, []);
+
+    return (
+        <LinearGradient colors={['#6B46C1', '#7C2D12']} style={styles.container}>
+            <Animated.View style={[styles.content, { opacity }]}>
+                <Text style={styles.title}>Movie App</Text>
+                <Text style={styles.subtitle}>Tontonan Gratis di Movie App</Text>
+            </Animated.View>
+        </LinearGradient>
+    );
 }
+
+const styles = StyleSheet.create({
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    content: { alignItems: 'center' },
+    title: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: 'white',
+        marginBottom: 10,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#E5E7EB',
+    },
+});
