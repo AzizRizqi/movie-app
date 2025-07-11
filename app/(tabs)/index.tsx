@@ -26,7 +26,7 @@ export default function SplashScreen() {
         <LinearGradient colors={['#6B46C1', '#7C2D12']} style={styles.container}>
             <Animated.View style={[styles.content, { opacity }]}>
                 <Text style={styles.title}>Movie App</Text>
-                <Text style={styles.subtitle}>Tontonan Gratis di Movie App</Text>
+                <Text style={styles.subtitle}>Cari Film Menarik</Text>
             </Animated.View>
         </LinearGradient>
     );
